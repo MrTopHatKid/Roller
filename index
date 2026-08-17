@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crate Opener</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap');
+
+    :root {
+      --bg: #080b14;
+      --bg2: #0d1222;
+      --panel: rgba(18, 24, 44, 0.72);
+      --panel-strong: rgba(12, 16, 30, 0.92);
+      --border: rgba(154, 167, 255, 0.14);
+      --text: #edf1ff;
+      --muted: #98a3c8;
+      --accent: #8b5cf6;
+      --accent2: #3b82f6;
+      --gold: #f5c85a;
+      --good: #5cffb0;
+      --danger: #ff6d7a;
+      --shadow: 0 24px 80px rgba(0,0,0,.45);
+      --radius: 22px;
+      --slotW: 116px;
+      --slotH: 84px;
+      --slotGap: 14px;
+      --reelH: 112px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(139,92,246,0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(59,130,246,0.14), transparent 26%),
+        radial-gradient(circle at bottom center, rgba(245,200,90,0.08), transparent 30%),
+        linear-gradient(180deg, #070a12 0%, #090d18 55%, #05070d 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at center, black 50%, transparent 100%);
+      opacity: .22;
+    }
+
+    .app {
+      width: min(1480px, calc(100vw - 28px));
+      margin: 14px auto 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(20,26,46,.82), rgba(10,14,26,.76));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(139,92,246,.95), rgba(59,130,246,.95));
+      box-shadow: 0 10px 32px rgba(139,92,246,.35);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: white;
+      font-family: Orbitron, sans-serif;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-family: Orbitron, sans-serif;
+      letter-spacing: .06em;
+      font-size: clamp(20px, 2vw, 30px);
+      text-transform: uppercase;
+    }
+
+    .title-wrap p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(154,167,255,.16);
+      background: rgba(10,14,25,.55);
+      color: #dce3ff;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(16,20,37,.78), rgba(9,12,22,.74));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .sidebar {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      position: sticky;
+      top: 14px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: .03em;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .btn {
+      border: 1px solid rgba(154,167,255,.18);
+      background: linear-gradient(180deg, rgba(33,40,71,.95), rgba(18,24,44,.92));
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: rgba(139,92,246,.45); box-shadow: 0 14px 34px rgba(139,92,246,.12); }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(139,92,246,.96), rgba(59,130,246,.94));
+      border-color: transparent;
+      font-weight: 700;
+    }
+    .btn.danger {
+      background: linear-gradient(180deg, rgba(61,19,26,.95), rgba(31,11,16,.92));
+      border-color: rgba(255,109,122,.24);
+    }
+    .btn.ghost {
+      background: rgba(14,18,31,.62);
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .field input[type="text"],
+    .field input[type="number"] {
+      width: 100%;
+      border: 1px solid rgba(154,167,255,.16);
+      background: rgba(10,13,25,.75);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .field input[type="text"]:focus,
+    .field input[type="number"]:focus {
+      border-color: rgba(139,92,246,.55);
+      box-shadow: 0 0 0 3px rgba(139,92,246,.16);
+    }
+
+    .upload-box {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(18,23,40,.7), rgba(12,16,28,.7));
+      border: 1px solid rgba(154,167,255,.14);
+    }
+
+    .upload-box small {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .upload-hidden { display: none; }
+
+    .main {
+      display: grid;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .spin-panel {
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .spin-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+
+    .spin-toolbar .left, .spin-toolbar .right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .reels-shell {
+      position: relative;
+      min-height: 480px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at center, rgba(139,92,246,.08), transparent 32%),
+        linear-gradient(180deg, rgba(7,10,18,.78), rgba(8,11,19,.92));
+      border: 1px solid rgba(154,167,255,.12);
+      overflow: hidden;
+    }
+
+    .reels-focus-note {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .reel-list {
+      display: grid;
+      gap: 14px;
+      padding: 18px 16px 16px;
+    }
+
+    .reel {
+      position: relative;
+      height: var(--reelH);
+      border-radius: 18px;
+      border: 1px solid rgba(154,167,255,.13);
+      background: rgba(13,17,31,.72);
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .reel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(139,92,246,.08), transparent 18%, transparent 82%, rgba(59,130,246,.08));
+      opacity: .7;
+      z-index: 1;
+    }
+
+    .viewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .track {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translate3d(0, -50%, 0);
+      display: flex;
+      gap: var(--slotGap);
+      will-change: transform;
+      padding-left: calc((100% - var(--slotW)) / 2);
+      padding-right: calc((100% - var(--slotW)) / 2);
+    }
+
+    .slot {
+      width: var(--slotW);
+      min-width: var(--slotW);
+      height: var(--slotH);
+      border-radius: 16px;
+      background: rgba(8,11,20,.86);
+      border: 1px solid rgba(154,167,255,.14);
+      overflow: hidden;
+      position: relative;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 24px rgba(0,0,0,.2);
+      flex: 0 0 auto;
+    }
+
+    .slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      user-select: none;
+      pointer-events: none;
+      filter: saturate(1.03) contrast(1.02);
+    }
+
+    .slot .label {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.38);
+      color: white;
+      font-size: 11px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      backdrop-filter: blur(8px);
+    }
+
+    .slot.winner {
+      border-color: rgba(245,200,90,.92);
+      box-shadow: 0 0 0 1px rgba(245,200,90,.14), 0 0 30px rgba(245,200,90,.26);
+    }
+
+    .slot.winner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(245,200,90,.18), transparent 50%, rgba(245,200,90,.06));
+      pointer-events: none;
+    }
+
+    .center-mark {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      transform: translateX(-1px);
+      background: linear-gradient(180deg, transparent 0%, rgba(245,200,90,.18) 12%, rgba(245,200,90,.92) 50%, rgba(245,200,90,.18) 88%, transparent 100%);
+      z-index: 6;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .center-arrow {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      z-index: 7;
+      pointer-events: none;
+      opacity: 0;
+      filter: drop-shadow(0 0 12px rgba(245,200,90,.4));
+    }
+
+    .center-arrow .pointer {
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 22px solid var(--gold);
+      margin: 0 auto;
+    }
+
+    .center-arrow .bar {
+      width: 110px;
+      height: 6px;
+      border-radius: 999px;
+      margin-top: 6px;
+      background: linear-gradient(90deg, transparent, rgba(245,200,90,.95), transparent);
+    }
+
+    .results {
+      padding: 16px 18px 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .results-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .result-card {
+      border: 1px solid rgba(154,167,255,.14);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(8,11,20,.86);
+      min-height: 130px;
+    }
+
+    .result-card img {
+      width: 100%;
+      height: 94px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .result-card .rname {
+      padding: 8px 10px 10px;
+      font-size: 12px;
+      color: #e8eeff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .collection {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .collection-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .collection-top .stats {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .collection-grid {
+      height: 460px;
+      overflow: auto;
+      padding-right: 4px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+
+    .image-card {
+      border: 1px solid rgba(154,167,255,.14);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(9,12,23,.84);
+      display: grid;
+      gap: 0;
+      min-height: 240px;
+      position: relative;
+    }
+
+    .image-card.selected {
+      box-shadow: 0 0 0 1px rgba(139,92,246,.18), 0 0 26px rgba(139,92,246,.08);
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      background: rgba(5,7,12,.75);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 11px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .mini-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mini-row input[type="text"] {
+      width: 100%;
+      border: 1px solid rgba(154,167,255,.12);
+      background: rgba(8,11,18,.8);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 10px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .mini-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mini-btn {
+      border: 1px solid rgba(154,167,255,.14);
+      background: rgba(14,19,34,.82);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 10px;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .2s ease;
+      font-size: 12px;
+    }
+
+    .mini-btn:hover { transform: translateY(-1px); border-color: rgba(139,92,246,.42); }
+    .mini-btn.on { background: linear-gradient(135deg, rgba(139,92,246,.95), rgba(59,130,246,.9)); border-color: transparent; }
+    .mini-btn.delete { background: rgba(54,16,24,.8); border-color: rgba(255,109,122,.2); }
+
+    .meta-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .focus-layer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background:
+        radial-gradient(circle at center, rgba(139,92,246,.09), transparent 36%),
+        linear-gradient(180deg, rgba(3,6,12,.92), rgba(3,6,12,.98));
+    }
+
+    .focus-stage {
+      position: absolute;
+      inset: 0;
+      padding: 20px;
+      display: grid;
+      place-items: center;
+    }
+
+    .focus-shell {
+      width: min(1500px, calc(100vw - 36px));
+      display: grid;
+      gap: 12px;
+    }
+
+    .focus-shell .reels-shell {
+      min-height: 0;
+      height: calc(100vh - 84px);
+      border-radius: 28px;
+      border-color: rgba(154,167,255,.16);
+      background:
+        radial-gradient(circle at center, rgba(139,92,246,.1), transparent 32%),
+        linear-gradient(180deg, rgba(7,10,18,.86), rgba(3,6,12,.96));
+    }
+
+    .focus-shell .reel-list {
+      padding: 92px 18px 18px;
+      gap: 16px;
+      height: 100%;
+      overflow: hidden;
+      align-content: center;
+    }
+
+    .focus-shell .reel {
+      height: 118px;
+    }
+
+    .focus-shell .center-mark,
+    .focus-shell .center-arrow {
+      opacity: 1;
+    }
+
+    body.spin-focus .topbar,
+    body.spin-focus .sidebar,
+    body.spin-focus .collection,
+    body.spin-focus .results,
+    body.spin-focus .spin-toolbar,
+    body.spin-focus .main > .panel:not(.spin-panel) {
+      display: none !important;
+    }
+
+    body.spin-focus .layout {
+      display: block;
+    }
+
+    body.spin-focus .spin-panel {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body.spin-focus .focus-layer { display: block; }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty-state {
+      padding: 18px;
+      border: 1px dashed rgba(154,167,255,.18);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(8,11,20,.42);
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: auto; }
+      .collection-grid { height: 360px; }
+      .focus-shell .reel-list { padding-top: 76px; }
+    }
+
+    @media (max-width: 720px) {
+      .app { width: min(100vw - 16px, 100%); margin: 8px auto 16px; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .button-row { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); }
+      .collection-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+      :root { --slotW: 98px; --slotH: 74px; --slotGap: 10px; }
+    }
+  body.spin-focus .label { display: none !important; }
+    </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar panel" id="header">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div class="title-wrap">
+          <h1>Crate Opener</h1>
+          <p>Upload images, choose winners, and spin a CS-style reel with exact center landing.</p>
+        </div>
+      </div>
+      <div class="top-stats">
+        <div class="pill" id="totalImagesPill">Total: 0</div>
+        <div class="pill" id="selectedImagesPill">Selected: 0</div>
+        <div class="pill" id="storagePill">Saved locally</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar panel" id="sidebar">
+        <div class="upload-box">
+          <div class="section-title">
+            <h2>Upload images</h2>
+            <span>localStorage</span>
+          </div>
+          <small>Choose multiple images. They are stored in the browser as base64 and can be named, selected, or removed.</small>
+          <input class="upload-hidden" id="fileInput" type="file" accept="image/*" multiple />
+          <div class="button-row">
+            <button class="btn primary" id="uploadBtn">Choose files</button>
+            <button class="btn ghost" id="clearAllBtn">Clear all</button>
+          </div>
+        </div>
+
+        <div class="upload-box">
+          <div class="section-title">
+            <h2>Spin settings</h2>
+            <span>1 to 5 reels</span>
+          </div>
+          <div class="field">
+            <label for="sliderCount">Number of sliders</label>
+            <input id="sliderCount" type="number" min="1" max="5" value="1" />
+          </div>
+          <div class="button-row">
+            <button class="btn primary" id="spinBtn">Spin</button>
+            <button class="btn ghost" id="selectAllBtn">Select all</button>
+          </div>
+          <div class="small-note">Each reel uses 40 slots and the winning slot is aligned with the center arrow using live DOM measurements.</div>
+        </div>
+
+        <div class="upload-box">
+          <div class="section-title">
+            <h2>Search</h2>
+            <span>filter by name</span>
+          </div>
+          <div class="field">
+            <label for="searchInput">Name filter</label>
+            <input id="searchInput" type="text" placeholder="Search items" />
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="panel spin-panel">
+          <div class="spin-toolbar" id="spinToolbar">
+            <div class="left">
+              <div class="status" id="spinStatus">Ready to spin.</div>
+            </div>
+            <div class="right">
+              <div class="pill" id="visibleCountPill">Visible: 0</div>
+            </div>
+          </div>
+
+          <div class="reels-shell" id="reelsShell">
+            <div class="reels-focus-note">
+              <span>Spinner area</span>
+              <span>Arrow locks to the winning item</span>
+            </div>
+            <div class="reel-list" id="reelList"></div>
+            <div class="center-mark" id="centerMark"></div>
+            <div class="center-arrow" id="centerArrow">
+              <div class="pointer"></div>
+              <div class="bar"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel results" id="resultsPanel">
+          <div class="results-head">
+            <div>
+              <div class="section-title" style="margin:0;">
+                <h2>Results</h2>
+                <span id="resultsCount">0 landed</span>
+              </div>
+              <div class="small-note">Compact summary of the last spin.</div>
+            </div>
+          </div>
+          <div class="results-grid" id="resultsGrid"></div>
+        </section>
+
+        <section class="panel collection" id="collectionPanel">
+          <div class="collection-top">
+            <div>
+              <div class="section-title" style="margin:0;">
+                <h2>Collection</h2>
+                <span id="collectionCount">0 items</span>
+              </div>
+              <div class="stats" id="collectionStats">0 visible of 0 total</div>
+            </div>
+            <div class="pill" id="selectionInfo">0 included</div>
+          </div>
+          <div class="collection-grid" id="collectionGrid"></div>
+          <div class="empty-state hidden" id="emptyState">No images yet. Upload some files to build your crate pool.</div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="focus-layer" id="focusLayer" aria-hidden="true">
+    <div class="focus-stage">
+      <div class="focus-shell">
+        <div class="reels-shell">
+          <div class="center-mark" style="opacity:1;"></div>
+          <div class="center-arrow" style="opacity:1;">
+            <div class="pointer"></div>
+            <div class="bar"></div>
+          </div>
+          <div class="reel-list" id="focusReelList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'crate-opener-images-v1';
+      const state = {
+        images: [],
+        reels: [],
+        spinning: false,
+        search: '',
+        selectedResults: []
+      };
+
+      const els = {
+        fileInput: document.getElementById('fileInput'),
+        uploadBtn: document.getElementById('uploadBtn'),
+        clearAllBtn: document.getElementById('clearAllBtn'),
+        selectAllBtn: document.getElementById('selectAllBtn'),
+        spinBtn: document.getElementById('spinBtn'),
+        sliderCount: document.getElementById('sliderCount'),
+        searchInput: document.getElementById('searchInput'),
+        collectionGrid: document.getElementById('collectionGrid'),
+        collectionCount: document.getElementById('collectionCount'),
+        collectionStats: document.getElementById('collectionStats'),
+        selectionInfo: document.getElementById('selectionInfo'),
+        totalImagesPill: document.getElementById('totalImagesPill'),
+        selectedImagesPill: document.getElementById('selectedImagesPill'),
+        visibleCountPill: document.getElementById('visibleCountPill'),
+        spinStatus: document.getElementById('spinStatus'),
+        emptyState: document.getElementById('emptyState'),
+        resultsGrid: document.getElementById('resultsGrid'),
+        resultsCount: document.getElementById('resultsCount'),
+        reelList: document.getElementById('reelList'),
+        focusReelList: document.getElementById('focusReelList'),
+        header: document.getElementById('header'),
+        sidebar: document.getElementById('sidebar'),
+        resultsPanel: document.getElementById('resultsPanel'),
+        collectionPanel: document.getElementById('collectionPanel'),
+        spinToolbar: document.getElementById('spinToolbar'),
+        focusLayer: document.getElementById('focusLayer'),
+        reelsShell: document.getElementById('reelsShell')
+      };
+
+      function uid() {
+        return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      }
+
+      function escapeHtml(text = '') {
+        return text.replace(/[&<>'"]/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[s]));
+      }
+
+      function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.images));
+      }
+
+      function load() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          state.images = raw ? JSON.parse(raw) : [];
+        } catch {
+          state.images = [];
+        }
+      }
+
+      function normalizedSearch() {
+        return state.search.trim().toLowerCase();
+      }
+
+      function visibleImages() {
+        const q = normalizedSearch();
+        return state.images.filter(img => {
+          const name = (img.name || '').toLowerCase();
+          return !q || name.includes(q);
+        });
+      }
+
+      function selectedPool() {
+        return state.images.filter(img => img.selected);
+      }
+
+      function renderCollection() {
+        const visible = visibleImages();
+        const total = state.images.length;
+        const selected = selectedPool().length;
+
+        els.collectionCount.textContent = `${total} items`;
+        els.collectionStats.textContent = `${visible.length} visible of ${total} total`;
+        els.selectionInfo.textContent = `${selected} included`;
+        els.totalImagesPill.textContent = `Total: ${total}`;
+        els.selectedImagesPill.textContent = `Selected: ${selected}`;
+        els.visibleCountPill.textContent = `Visible: ${visible.length}`;
+        els.emptyState.classList.toggle('hidden', total !== 0);
+
+        if (!visible.length) {
+          els.collectionGrid.innerHTML = '';
+          return;
+        }
+
+        els.collectionGrid.innerHTML = visible.map(img => `
+          <article class="image-card ${img.selected ? 'selected' : ''}" data-id="${img.id}">
+            <div class="thumb"><img src="${img.src}" alt="${escapeHtml(img.name || 'Image')}" /></div>
+            <div class="card-body">
+              <div class="mini-row">
+                <input type="text" value="${escapeHtml(img.name || '')}" placeholder="Optional name" data-action="rename" data-id="${img.id}" />
+              </div>
+              <div class="mini-actions">
+                <button class="mini-btn ${img.selected ? 'on' : ''}" data-action="toggle" data-id="${img.id}">${img.selected ? 'Included' : 'Excluded'}</button>
+                <button class="mini-btn delete" data-action="delete" data-id="${img.id}">Delete</button>
+              </div>
+              <div class="meta-line"><span>${img.id.slice(0, 6)}</span><span>${img.selected ? 'In spin pool' : 'Hidden from spins'}</span></div>
+            </div>
+          </article>
+        `).join('');
+      }
+
+      function renderResults(results = []) {
+        state.selectedResults = results;
+        els.resultsCount.textContent = `${results.length} landed`;
+        if (!results.length) {
+          els.resultsGrid.innerHTML = '';
+          return;
+        }
+        els.resultsGrid.innerHTML = results.map((item, index) => `
+          <div class="result-card">
+            <img src="${item.src}" alt="${escapeHtml(item.name || 'Result')}" />
+            <div class="rname">${index + 1}. ${escapeHtml(item.name || 'Unnamed')}</div>
+          </div>
+        `).join('');
+      }
+
+      function renderReelTemplate(container, count) {
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+          const reel = document.createElement('div');
+          reel.className = 'reel';
+          reel.innerHTML = `
+            <div class="viewport">
+              <div class="track"></div>
+            </div>
+          `;
+          container.appendChild(reel);
+        }
+      }
+
+      function slotHTML(item, extraClass = '') {
+        return `
+          <div class="slot ${extraClass}">
+            <img src="${item.src}" alt="${escapeHtml(item.name || 'Item')}" />
+            <div class="label">${escapeHtml(item.name || 'Unnamed')}</div>
+          </div>
+        `;
+      }
+
+      function pickUniqueWinners(pool, count) {
+        const available = [...pool];
+        const winners = [];
+        for (let i = 0; i < count; i++) {
+          if (!available.length) {
+            winners.push(pool[Math.floor(Math.random() * pool.length)]);
+            continue;
+          }
+          const idx = Math.floor(Math.random() * available.length);
+          winners.push(available.splice(idx, 1)[0]);
+        }
+        return winners;
+      }
+
+      function cyclePool(pool, total) {
+        const result = [];
+        let i = 0;
+        while (result.length < total) {
+          result.push(pool[i % pool.length]);
+          i++;
+        }
+        return result;
+      }
+
+      function setFocusMode(active) {
+        document.body.classList.toggle('spin-focus', active);
+      }
+
+      function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+      function getArrowCenterX(shell) {
+        const arrow = shell.querySelector('.center-arrow');
+        const rect = arrow.getBoundingClientRect();
+        return rect.left + rect.width / 2;
+      }
+
+      function getSlotCenterX(slotEl) {
+        const rect = slotEl.getBoundingClientRect();
+        return rect.left + rect.width / 2;
+      }
+
+      async function spin() {
+        if (state.spinning) return;
+        const pool = selectedPool();
+        if (!pool.length) {
+          els.spinStatus.textContent = 'No selected images to spin. Include at least one image.';
+          return;
+        }
+
+        const requested = Math.min(5, Math.max(1, parseInt(els.sliderCount.value || '1', 10) || 1));
+        const reelCount = Math.min(requested, pool.length);
+        const winners = pickUniqueWinners(pool, reelCount);
+
+        state.spinning = true;
+        setFocusMode(true);
+        els.spinStatus.textContent = 'Spinning...';
+        els.reelList.innerHTML = '';
+        els.focusReelList.innerHTML = '';
+        renderReelTemplate(els.reelList, reelCount);
+        renderReelTemplate(els.focusReelList, reelCount);
+
+        const reels = [...els.focusReelList.querySelectorAll('.reel')];
+        const spinDuration = 4300;
+        const stagger = 220;
+        const trackItems = 40;
+
+        const promises = reels.map(async (reel, index) => {
+          await sleep(index * stagger);
+
+          const viewport = reel.querySelector('.viewport');
+          const track = reel.querySelector('.track');
+          const winner = winners[index];
+
+          const targetIndex = Math.floor(26 + Math.random() * 8);
+          const items = cyclePool(pool, trackItems);
+          items[targetIndex] = winner;
+          for (let i = 0; i < trackItems; i++) {
+            if (i === targetIndex) continue;
+            if (i < targetIndex && Math.random() < 0.35) items[i] = pool[Math.floor(Math.random() * pool.length)];
+          }
+
+          track.innerHTML = items.map((item) => slotHTML(item, '')).join('');
+          await new Promise(requestAnimationFrame);
+
+          const slotEls = track.querySelectorAll('.slot');
+          const targetSlot = slotEls[targetIndex];
+          const arrowCenterX = getArrowCenterX(reel.closest('.reels-shell'));
+          const targetCenterX = getSlotCenterX(targetSlot);
+          const currentTransform = 0;
+          const delta = arrowCenterX - targetCenterX;
+          const finalTransform = currentTransform + delta;
+
+          track.style.transition = 'none';
+          track.style.transform = `translate3d(${0}px, -50%, 0)`;
+          // Force layout so the animated transform starts cleanly.
+          track.offsetHeight;
+          track.style.transition = `transform ${spinDuration}ms cubic-bezier(.12,.82,.09,1)`;
+          track.style.transform = `translate3d(${finalTransform}px, -50%, 0)`;
+
+          await new Promise(resolve => {
+            const done = () => resolve();
+            track.addEventListener('transitionend', done, { once: true });
+            setTimeout(done, spinDuration + 180);
+          });
+
+          return { winner, reel, track, targetIndex };
+        });
+
+        const finished = await Promise.all(promises);
+        const results = finished.map(x => x.winner);
+
+        els.reelList.innerHTML = finished.map((entry, idx) => {
+          const win = entry.winner;
+          return `
+            <div class="reel">
+              <div class="viewport">
+                <div class="track" style="transform: translate3d(0, -50%, 0);">
+                  <div class="slot winner"><img src="${win.src}" alt="${escapeHtml(win.name || 'Winner')}" /><div class="label">${escapeHtml(win.name || 'Winner')}</div></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        renderResults(results);
+        els.spinStatus.textContent = 'Spin complete.';
+        state.spinning = false;
+        setFocusMode(false);
+      }
+
+      function addFiles(fileList) {
+        const files = [...fileList];
+        if (!files.length) return;
+
+        const readers = files.map(file => new Promise(async resolve => {
+          let blob = file;
+
+          if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+            try {
+              blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+            } catch (e) {
+              console.error('HEIC conversion failed', e);
+              return resolve(null);
+            }
+          }
+
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            id: uid(),
+            src: reader.result,
+            selected: true,
+            name: file.name.replace(/\.[^.]+$/, '')
+          });
+          reader.readAsDataURL(blob);
+        }));
+
+        Promise.all(readers).then(items => {
+          const valid = items.filter(Boolean);
+          state.images.unshift(...valid);
+          save();
+          renderCollection();
+        });
+      }
+
+      function handleCollectionAction(target) {
+        const id = target.dataset.id;
+        const action = target.dataset.action;
+        const idx = state.images.findIndex(i => i.id === id);
+        if (idx === -1) return;
+
+        if (action === 'toggle') {
+          state.images[idx].selected = !state.images[idx].selected;
+          save();
+          renderCollection();
+          return;
+        }
+
+        if (action === 'delete') {
+          state.images.splice(idx, 1);
+          save();
+          renderCollection();
+          return;
+        }
+
+        if (action === 'rename') {
+          state.images[idx].name = target.value.trim();
+          save();
+          renderCollection();
+          return;
+        }
+      }
+
+      els.uploadBtn.addEventListener('click', () => els.fileInput.click());
+      els.fileInput.addEventListener('change', e => addFiles(e.target.files));
+      els.clearAllBtn.addEventListener('click', () => {
+        if (!confirm('Clear all stored images?')) return;
+        state.images = [];
+        save();
+        renderCollection();
+        renderResults([]);
+      });
+      els.selectAllBtn.addEventListener('click', () => {
+        state.images.forEach(img => img.selected = true);
+        save();
+        renderCollection();
+      });
+      els.spinBtn.addEventListener('click', spin);
+      els.searchInput.addEventListener('input', e => {
+        state.search = e.target.value;
+        renderCollection();
+      });
+      els.collectionGrid.addEventListener('click', e => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        handleCollectionAction(btn);
+      });
+      els.collectionGrid.addEventListener('input', e => {
+        const input = e.target.closest('input[data-action="rename"]');
+        if (!input) return;
+        const id = input.dataset.id;
+        const idx = state.images.findIndex(i => i.id === id);
+        if (idx === -1) return;
+        state.images[idx].name = input.value;
+        save();
+        renderCollection();
+      });
+
+      window.addEventListener('resize', () => {
+        if (state.spinning) return;
+        renderCollection();
+      });
+
+      load();
+      renderCollection();
+      renderResults([]);
+      els.spinStatus.textContent = 'Ready to spin.';
+    })();
+  </script>
+
+  <!-- Image Modal -->
+  <div id="imgModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:9999;">
+    <div id="imgModalBg" style="position:absolute;inset:0;"></div>
+    <img id="imgModalImg" style="max-width:90vw;max-height:90vh;border-radius:16px;box-shadow:0 20px 80px rgba(0,0,0,0.6);z-index:2;" />
+  </div>
+
+  <script>
+    (function(){
+      const modal = document.getElementById('imgModal');
+      const modalImg = document.getElementById('imgModalImg');
+      const bg = document.getElementById('imgModalBg');
+
+      function open(src){
+        modal.style.display = 'flex';
+        modalImg.src = src;
+      }
+      function close(){
+        modal.style.display = 'none';
+        modalImg.src = '';
+      }
+
+      document.getElementById('resultsGrid').addEventListener('click', (e) => {
+        const img = e.target.closest('img');
+        if(!img) return;
+        open(img.src);
+      });
+
+      bg.addEventListener('click', close);
+      modalImg.addEventListener('click', close);
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <script>
+    (function(){
+      const origAddFiles = window.addFiles;
+    })();
+  </script>
+</body>
+</html>
